@@ -1,0 +1,552 @@
+openapi: 3.0.3
+info:
+  title: "Easy byte Demo."
+  # invalid property #summary: "This is demo for learning purpose."
+  description: |
+    We will describe it in the detail here.
+    We will describe it later.
+    ddsfd
+  termsOfService: https://www.google.com.pk
+  contact:
+    name: API Support
+    url: https://www.google.com.pk
+    email: yahid@gdsa.com
+  license:
+    name: Apache 2.0
+    url: https://www.google.com.pk
+  version: 0.0.1
+externalDocs:
+  description: External Documentation for illustration.
+  url: https://www.google.com.pk
+# it must start with 'x-' after taht we can mention anyname.
+x-custom-info:
+  comment: Some Comments.
+  developers:
+    - name: John Doe
+      email: john@doe.com
+    - name: Jane Doe
+      email: jane@doe.com
+servers:
+  - url: https://www.google.com.pk
+    description: "Dev Server"
+  - url: https://www.google.com.pk
+    description: "Testing Server."
+  - url: https://www.google.com.pk
+    description: "Production Server."
+  - url : https://{username}.server.com:{port}/{version}
+    variables:
+      username:
+        default: demo
+        description: This value is assigned by the service provider.
+      port:
+        enum:
+          - "8443"
+          - "443"
+        default: "8443"
+      version:
+        default: v1
+security:
+  - basicAuth: []
+  - bearerAuth: []
+  - apiKeyAuth: []
+  - oAuth2AuthCode:
+    - read
+    - write
+    - admin
+tags:
+  - name: categories
+    description: Categories-related operations.
+  - name: products
+    description: products related operation.
+  - name: orders
+    description: Oder related operations.
+
+paths:
+  /categories:
+    get:
+      operationId: getCategoryDetails
+      tags:
+        - categories
+      summary: List of all categories.
+      description: "Return the list of catogeries supported by shop."
+      security:
+        - basicAuth: []
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+            minimum: 100
+            maximum: 1000
+          examples:
+            mobiles:
+              summary: Use this example for mobiles.
+              value: 101
+            laptops:
+              value: 102
+            headphones:
+              value: 103
+            television:
+              value: 104
+
+      responses:
+        '200':
+          description: List of categories.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+              examples:
+                all-categories-data:
+                  summary: allcategories example data
+                  value:
+                    - categoryId: 101
+                      name: Mobile
+                    - categoryId: 102
+                      name: Laptops
+                    - categoryId: 103
+                      name: Headphones
+                    - categoryId: 104
+                      name: Television
+                single-category-data:
+                  summary: single category example.
+                  value:
+                    - categoryId: 101
+                      name: Mobiles
+
+  /categories/{categoryid}:
+    get:
+      tags:
+        - categories
+      security: []
+      summary: List the item.
+      description: List the mentioned item.
+      parameters:
+        - name: categoryid
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 500
+          example: 2
+      responses:
+        '200':
+          description: List item.
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+# Build the product ###########
+  /products:
+    get:
+      operationId: getProducts
+      tags:
+        - products
+      summary: "List all the products"
+      description: "All products are listed which belongs to certain category."
+      parameters:
+        - name: categoryid
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          example: 1
+      responses:
+        '200':
+          description: "des for products endpoint."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Products"
+              examples:
+                products-data:
+                  summary: Products example data.
+                  value:
+                    - productId: 101
+                      name: Apple Iphone 13 pro
+                      price: 888.40
+                      categoryName: Mobiles
+                      quantity: 102
+                    - productId: 102
+                      name: Samsung S22 ultra
+                      price: 999.22
+                      categoryName: Mobiles
+                      qunatity: 103
+                    - productId: 103
+                      name: onePlus
+                      price: 222.22
+                      categoryName: Mobiles
+                      quantity: 66
+  /products/{productId}:
+    get:
+      operationId: getProductDetails
+      tags: 
+        - products
+      summary: "List particular product"
+      description: "description of particular product."
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+          example: 1
+      responses:
+        '200':
+          description: "Request is successful."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Products"
+                    
+  /orders:
+    post:
+      operationId: saveOrderDetails
+      tags:
+        - orders
+      summary: "Create Order."
+      description: |
+        "Post order details to easyshop for processing & shipping."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                products:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Products"
+                address:
+                  $ref: "#/components/schemas/Address"
+      responses:
+        '201':
+          description: "Order Created Successfully."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+          links:
+            GetOrderByOrderId:
+              $ref: '#/components/links/GetOrderByOrderId'
+          #links:
+          #  # unique name for link
+          #  GetOrderByOrderId:
+          #    description: >
+          #      The `orderId` value returned in the response can be used as input parameter in 
+          #      `Get /orders`.
+          #    # The operationid of the operation( get or post) etc which is going to accept
+          #    # parameter.
+          #    operationId: getProductDetails #getOrderDetails
+          #    parameters:
+          #      orderId: '$response.body#/orderId'
+
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      operationId: updateOrderDetails
+      tags:
+        - orders
+      summary: update Order
+      description: |
+        update order details to EasyShop for processing and shipping.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orderId:
+                  type: integer
+                products:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Products"
+                address:
+                  $ref: "#/components/schemas/Address"
+      responses:
+        '200':
+          description: "order details updated successfuly"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      operationId: deleteOrderDetails
+      tags:
+        - orders
+      summary: Delete Order
+      description: Delete Order  details from EaszyShop
+      parameters:
+        - $ref: "#/components/parameters/orderIdQueryParam"
+      responses:
+        '204':
+          description: Order details cancelled successfully.
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+    get:
+      operationId: getOrderDetails
+      tags: 
+        - orders
+      summary: Get order details.
+      description: Get all the products which contained in the order.
+      parameters:
+        - $ref: "#/components/parameters/orderIdQueryParam"
+      responses:
+        '200':
+          description: Fetch Order details successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+                  products:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Products"
+                  address:
+                    $ref: "#/components/schemas/Address"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+  /oreders/{orderId}:
+    get:
+      operationId: getOrderDetailsUsingPathParam
+      deprecated: true
+      tags:
+        - orders
+      summary: Get Order Details.
+      description: Get Order details from EazyShop.
+      parameters:
+        - $ref: '#/components/parameters/orderIdPathParam'
+      responses:
+        '200':
+          description: Fetch Order details successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+                  products:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Products"
+                  address:
+                    $ref: "#/components/schemas/Address"
+
+
+  /oneOfOrder:
+    post:
+      tags:
+        - orders
+      summary: Insert oneOf the order details.
+      description: Polymorphism is implemented in OpenApi.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                products:
+                  type: object
+                  oneOf:
+                    - $ref: "#/components/schemas/Mobile"
+                    - $ref: "#/components/schemas/Laptop"
+                address:
+                  $ref: "#/components/schemas/Address"
+              required:
+                - products
+                - address
+      responses:
+        '200':
+          description: "order details updated successfuly"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+
+  /anyOfOrder:
+    get:
+      tags:
+        - orders
+      summary: Get Order details.
+      description: use anyOf keyword in OpenAPI
+      parameters:
+        - $ref: "#/components/parameters/orderIdQueryParam"
+        - name: fetchType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - summary
+              - details
+          description: |
+            Fetch Type:
+              * `summmary` - Will provide Order Summary
+              * `details` - Will provide Order Summary & Order Address
+      responses:
+        '200':
+          description: Return product details
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/Ordersummary"
+                  - $ref: "#/components/schemas/OrderAddress" 
+
+
+components:
+  parameters:
+    #Each paramter must have unique name.
+    orderIdQueryParam:
+      name: orderId
+      in: query
+      required: true
+      schema:
+        type: integer
+    orderIdPathParam:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: integer
+  schemas:
+    Address:
+      type: object
+      properties:
+        addressLine:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+          enum:
+            - California
+            - Texas
+            - Indiana
+            - NewYork
+        zipcode: 
+          type: string 
+        isOfficeAddress:
+          type: boolean
+          default: false
+      required: # we can also define like this one [addressLine, city, state, zipcode]
+        - addressLine
+        - city
+        - state
+        - zipcode
+    Products:
+      type: object
+      properties:
+        productId:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+          format: float
+        releaseDate:
+          type: string
+          format: date
+          readOnly: true
+        categoryName:
+          type: string
+          nullable: true
+        quantity:
+          type: integer
+    Category:
+      type: object
+      properties:
+        categoryId:
+          type: integer
+        name:
+          type: string
+    Mobile:
+      allOf:
+        - $ref: "#/components/schemas/Products"
+        - type: object
+          properties:
+            networkType:
+              type: string
+              enum:
+                - 4G
+                - 5G
+          required: [networkType]
+    Laptop:
+      allOf:
+        - $ref: "#/components/schemas/Products"
+        - type: object
+          properties:
+            ram:
+              type: string
+              enum:
+                - 8 GB
+                - 16 GB
+                - 32 GB
+          required: [ram]
+    Ordersummary:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Products"
+    OrderAddress:
+      type: object
+      properties:
+        address:
+          $ref: "#/components/schemas/Address"
+  responses:
+    InternalServerError:
+      description: |
+        An error occured while processing the request.
+        Please contact support@gmail.com
+  links:
+    # unique name for link
+    GetOrderByOrderId:
+      description: >
+        The `orderId` value returned in the response can be used as input parameter in 
+        `Get /orders`.
+      # The operationid of the operation( get or post) etc which is going to accept the 
+      # parameter.
+      operationId: getOrderDetails  #getProductDetails 
+      parameters:
+        orderId: '$response.body#/orderId'
+  securitySchemes:
+    basicAuth: #arbitrary name we can give any name instead of basicauth
+      type: http
+      scheme: basic
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    oAuth2AuthCode:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://www.google.com.pk/oauth/authorize
+          tokenUrl: https://www.example.com/api/oauth.access
+          scopes:
+            # read, write, admin are not keyword you can define any one.
+            read: Read only access
+            write: write only access
+            admin: admin access
+
+
